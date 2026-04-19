@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SAP O2C – Order to Cash System</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --sap-blue: #0070F2;
+    --sap-dark: #032D60;
+    --sap-gold: #F5A623;
+    --sap-green: #30914C;
+    --sap-red: #BB0000;
+    --sap-light: #F0F4FF;
+    --sap-surface: #FFFFFF;
+    --sap-border: #D1D9E0;
+    --sap-text: #1C2B33;
+    --sap-muted: #5A6A75;
+    --mono: 'Space Mono', monospace;
+    --body: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--body);
+    background: #EEF2F8;
+    color: var(--sap-text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    background: linear-gradient(135deg, var(--sap-dark) 0%, #063A7A 60%, #0057B8 100%);
+    color: #fff;
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 32px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .sap-logo {
+    background: #fff;
+    color: var(--sap-blue);
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 18px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    letter-spacing: 2px;
+  }
+  .brand-text h1 {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.3px;
+  }
+  .brand-text p {
+    font-size: 11px;
+    opacity: 0.6;
+    font-family: var(--mono);
+    letter-spacing: 1px;
+  }
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .badge-pill {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-family: var(--mono);
+    letter-spacing: 0.5px;
+  }
+  .badge-pill.active { background: var(--sap-gold); color: #000; border-color: var(--sap-gold); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-strip {
+    background: rgba(0,0,0,0.25);
+    padding: 10px 32px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .step-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: var(--mono);
+    letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+  .step-pill.done { color: var(--sap-green); border-color: rgba(48,145,76,0.4); background: rgba(48,145,76,0.1); }
+  .step-pill.active { color: #fff; background: var(--sap-blue); border-color: var(--sap-blue); }
+  .step-pill i { font-size: 10px; }
+  .step-arrow { color: rgba(255,255,255,0.2); font-size: 10px; margin: 0 4px; }
+
+  /* ── LAYOUT ── */
+  .app-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    gap: 20px;
+    padding: 24px 28px;
+    max-width: 1600px;
+    margin: 0 auto;
+    min-height: calc(100vh - 110px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar { display: flex; flex-direction: column; gap: 14px; }
+  .card-panel {
+    background: var(--sap-surface);
+    border-radius: 14px;
+    border: 1px solid var(--sap-border);
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .panel-header {
+    padding: 14px 18px;
+    background: var(--sap-dark);
+    color: #fff;
+    font-size: 11px;
+    font-family: var(--mono);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-body { padding: 16px 18px; }
+
+  .nav-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+  }
+  .nav-step:hover { background: var(--sap-light); }
+  .nav-step.active { background: var(--sap-blue); color: #fff; }
+  .nav-step.done { border-color: var(--sap-green); background: rgba(48,145,76,0.06); }
+  .nav-step.done .step-num { background: var(--sap-green); color: #fff; }
+  .step-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #EEF2F8;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .nav-step.active .step-num { background: rgba(255,255,255,0.2); color: #fff; }
+  .step-label { font-size: 13px; font-weight: 500; }
+  .step-sub { font-size: 10px; opacity: 0.6; font-family: var(--mono); }
+
+  /* ── MAIN ── */
+  .main-content { display: flex; flex-direction: column; gap: 20px; }
+
+  .section-card {
+    background: var(--sap-surface);
+    border-radius: 14px;
+    border: 1px solid var(--sap-border);
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    animation: fadeUp 0.3s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--sap-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(90deg, var(--sap-light), #fff);
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    background: var(--sap-blue);
+    color: #fff;
+  }
+  .section-title h2 { font-size: 17px; font-weight: 700; }
+  .section-title p  { font-size: 12px; color: var(--sap-muted); font-family: var(--mono); }
+
+  .section-body { padding: 24px; }
+
+  /* ── FORM STYLES ── */
+  .form-label { font-size: 12px; font-weight: 600; color: var(--sap-muted); font-family: var(--mono); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 5px; }
+  .form-control, .form-select {
+    border: 1.5px solid var(--sap-border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: var(--body);
+    padding: 9px 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #FAFBFC;
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: var(--sap-blue);
+    box-shadow: 0 0 0 3px rgba(0,112,242,0.12);
+    outline: none;
+    background: #fff;
+  }
+
+  /* ── TABLE ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table thead th {
+    background: var(--sap-dark);
+    color: #fff;
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+  .data-table tbody tr { border-bottom: 1px solid #F0F4F8; }
+  .data-table tbody tr:hover { background: var(--sap-light); }
+  .data-table tbody td { padding: 11px 14px; }
+  .doc-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--sap-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: var(--sap-blue);
+  }
+
+  /* ── BUTTONS ── */
+  .btn-sap {
+    background: var(--sap-blue);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-sap:hover { background: #0058C8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,112,242,0.3); }
+  .btn-sap:active { transform: translateY(0); }
+  .btn-outline-sap {
+    background: transparent;
+    color: var(--sap-blue);
+    border: 1.5px solid var(--sap-blue);
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-outline-sap:hover { background: var(--sap-blue); color: #fff; }
+  .btn-success-sap {
+    background: var(--sap-green);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-success-sap:hover { background: #267A40; }
+
+  /* ── STATUS BADGES ── */
+  .status { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; font-family: var(--mono); }
+  .status-open    { background: #FFF3CD; color: #856404; }
+  .status-done    { background: #D1FAE5; color: #065F46; }
+  .status-pending { background: #DBEAFE; color: #1E40AF; }
+  .status-partial { background: #FFE4E6; color: #9F1239; }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .kpi-card {
+    background: var(--sap-surface);
+    border: 1px solid var(--sap-border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    border-left: 4px solid var(--sap-blue);
+  }
+  .kpi-card.green  { border-left-color: var(--sap-green); }
+  .kpi-card.gold   { border-left-color: var(--sap-gold); }
+  .kpi-card.red    { border-left-color: var(--sap-red); }
+  .kpi-label { font-size: 10px; font-family: var(--mono); letter-spacing: 1px; color: var(--sap-muted); text-transform: uppercase; }
+  .kpi-value { font-size: 26px; font-weight: 700; font-family: var(--mono); margin: 4px 0; }
+  .kpi-sub   { font-size: 11px; color: var(--sap-muted); }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel { display: flex; flex-direction: column; gap: 14px; }
+
+  .flow-step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    position: relative;
+  }
+  .flow-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: 36px;
+    height: calc(100% + 14px);
+    width: 2px;
+    background: var(--sap-border);
+  }
+  .flow-icon {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    background: var(--sap-light);
+    color: var(--sap-muted);
+    border: 2px solid var(--sap-border);
+    z-index: 1;
+  }
+  .flow-icon.done  { background: var(--sap-green); color: #fff; border-color: var(--sap-green); }
+  .flow-icon.active{ background: var(--sap-blue);  color: #fff; border-color: var(--sap-blue); }
+  .flow-info h4 { font-size: 13px; font-weight: 600; }
+  .flow-info p  { font-size: 11px; color: var(--sap-muted); font-family: var(--mono); }
+  .flow-info .t-code { color: var(--sap-blue); }
+
+  /* ── LINE ITEMS ── */
+  .line-item-row {
+    background: var(--sap-light);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr auto;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+  }
+  .remove-btn { background: none; border: none; color: var(--sap-red); cursor: pointer; font-size: 16px; }
+
+  /* ── TOAST ── */
+  .toast-box {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .toast-item {
+    background: var(--sap-dark);
+    color: #fff;
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    animation: slideIn 0.3s ease;
+    border-left: 4px solid var(--sap-green);
+    max-width: 320px;
+  }
+  .toast-item.error { border-left-color: var(--sap-red); }
+  @keyframes slideIn {
+    from { transform: translateX(100px); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+  }
+
+  /* ── DOC NUMBER ── */
+  .big-doc {
+    font-family: var(--mono);
+    font-size: 28px;
+    color: var(--sap-blue);
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #C0CAD4; border-radius: 3px; }
+
+  .info-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--sap-light);
+    border: 1px solid var(--sap-border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--sap-dark);
+  }
+
+  @media (max-width: 1200px) {
+    .app-layout { grid-template-columns: 240px 1fr; }
+    .right-panel { display: none; }
+    .kpi-grid { grid-template-columns: repeat(2,1fr); }
+  }
+  @media (max-width: 768px) {
+    .app-layout { grid-template-columns: 1fr; padding: 14px; }
+    .sidebar { display: none; }
+    .header-inner { padding: 12px 16px; }
+    .progress-strip { padding: 8px 16px; }
+  }
+
+  .divider { height: 1px; background: var(--sap-border); margin: 18px 0; }
+
+  .highlight-box {
+    background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+    border: 1px solid #BFDBFE;
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+
+  .amount-display {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--sap-green);
+  }
+
+  /* Tab nav */
+  .tab-nav { display: flex; gap: 4px; border-bottom: 2px solid var(--sap-border); margin-bottom: 20px; }
+  .tab-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--sap-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+  }
+  .tab-btn.active { color: var(--sap-blue); border-bottom-color: var(--sap-blue); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="sap-logo">SAP</div>
+      <div class="brand-text">
+        <h1>Order-to-Cash Management System</h1>
+        <p>SD · FI · MM · KIIT Capstone Project</p>
+      </div>
+    </div>
+    <div class="header-badges">
+      <span class="badge-pill">S/4HANA</span>
+      <span class="badge-pill active" id="systemStatus">● SYSTEM LIVE</span>
+      <span class="badge-pill" id="currentDate"></span>
+    </div>
+  </div>
+  <!-- Progress Strip -->
+  <div class="progress-strip" id="progressStrip">
+    <div class="step-pill done" onclick="goStep(1)"><i class="fa fa-check"></i> Sales Inquiry</div>
+    <span class="step-arrow">›</span>
+    <div class="step-pill" id="sp2" onclick="goStep(2)"><i class="fa fa-circle"></i> Quotation</div>
+    <span class="step-arrow">›</span>
+    <div class="step-pill" id="sp3" onclick="goStep(3)"><i class="fa fa-circle"></i> Sales Order</div>
+    <span class="step-arrow">›</span>
+    <div class="step-pill" id="sp4" onclick="goStep(4)"><i class="fa fa-circle"></i> Delivery</div>
+    <span class="step-arrow">›</span>
+    <div class="step-pill" id="sp5" onclick="goStep(5)"><i class="fa fa-circle"></i> Goods Issue</div>
+    <span class="step-arrow">›</span>
+    <div class="step-pill" id="sp6" onclick="goStep(6)"><i class="fa fa-circle"></i> Billing</div>
+    <span class="step-arrow">›</span>
+    <div class="step-pill" id="sp7" onclick="goStep(7)"><i class="fa fa-circle"></i> Payment</div>
+  </div>
+</header>
+
+<!-- MAIN LAYOUT -->
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="card-panel">
+      <div class="panel-header"><i class="fa fa-sitemap"></i> O2C PROCESS FLOW</div>
+      <div class="panel-body">
+        <div class="nav-step done" onclick="goStep(1)">
+          <div class="step-num">1</div>
+          <div><div class="step-label">Sales Inquiry</div><div class="step-sub">VA11 · Customer RFQ</div></div>
+        </div>
+        <div class="nav-step" id="ns2" onclick="goStep(2)">
+          <div class="step-num">2</div>
+          <div><div class="step-label">Quotation</div><div class="step-sub">VA21 · Price Offer</div></div>
+        </div>
+        <div class="nav-step" id="ns3" onclick="goStep(3)">
+          <div class="step-num">3</div>
+          <div><div class="step-label">Sales Order</div><div class="step-sub">VA01 · Order Entry</div></div>
+        </div>
+        <div class="nav-step" id="ns4" onclick="goStep(4)">
+          <div class="step-num">4</div>
+          <div><div class="step-label">Delivery</div><div class="step-sub">VL01N · Outbound</div></div>
+        </div>
+        <div class="nav-step" id="ns5" onclick="goStep(5)">
+          <div class="step-num">5</div>
+          <div><div class="step-label">Goods Issue</div><div class="step-sub">VL02N · PGI</div></div>
+        </div>
+        <div class="nav-step" id="ns6" onclick="goStep(6)">
+          <div class="step-num">6</div>
+          <div><div class="step-label">Billing / Invoice</div><div class="step-sub">VF01 · FI Integration</div></div>
+        </div>
+        <div class="nav-step" id="ns7" onclick="goStep(7)">
+          <div class="step-num">7</div>
+          <div><div class="step-label">Payment Receipt</div><div class="step-sub">F-28 · AR Clearing</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-panel">
+      <div class="panel-header"><i class="fa fa-building"></i> COMPANY INFO</div>
+      <div class="panel-body" style="font-size:13px; line-height:2;">
+        <div><b>Company:</b> KIIT Industries Ltd</div>
+        <div><b>Code:</b> <span class="doc-num">K100</span></div>
+        <div><b>Sales Org:</b> <span class="doc-num">KS10</span></div>
+        <div><b>Dist. Channel:</b> 10 (Wholesale)</div>
+        <div><b>Division:</b> 00 (All Products)</div>
+        <div><b>Plant:</b> <span class="doc-num">KP01</span></div>
+        <div><b>Currency:</b> INR ₹</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content" id="mainContent">
+
+    <!-- KPI BAR -->
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="kpi-card">
+        <div class="kpi-label">Open Orders</div>
+        <div class="kpi-value" id="kpiOrders">0</div>
+        <div class="kpi-sub">Sales Documents</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">Revenue (₹)</div>
+        <div class="kpi-value" id="kpiRevenue">0</div>
+        <div class="kpi-sub">Billed this session</div>
+      </div>
+      <div class="kpi-card gold">
+        <div class="kpi-label">Deliveries</div>
+        <div class="kpi-value" id="kpiDeliveries">0</div>
+        <div class="kpi-sub">Outbound created</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-label">Pending AR</div>
+        <div class="kpi-value" id="kpiAR">0</div>
+        <div class="kpi-sub">Awaiting payment</div>
+      </div>
+    </div>
+
+    <!-- Dynamic Step Section -->
+    <div id="stepContainer"></div>
+
+  </main>
+
+  <!-- RIGHT PANEL -->
+  <aside class="right-panel">
+    <div class="card-panel">
+      <div class="panel-header"><i class="fa fa-stream"></i> DOCUMENT FLOW</div>
+      <div class="panel-body">
+        <div style="display:flex; flex-direction:column; gap:14px;" id="docFlow">
+          <div class="flow-step">
+            <div class="flow-icon done"><i class="fa fa-search"></i></div>
+            <div class="flow-info">
+              <h4>Sales Inquiry</h4>
+              <p class="t-code">T-Code: VA11</p>
+              <p id="df1">Pending</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-icon" id="fi2"><i class="fa fa-file-alt"></i></div>
+            <div class="flow-info">
+              <h4>Quotation</h4>
+              <p class="t-code">T-Code: VA21</p>
+              <p id="df2">Not created</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-icon" id="fi3"><i class="fa fa-shopping-cart"></i></div>
+            <div class="flow-info">
+              <h4>Sales Order</h4>
+              <p class="t-code">T-Code: VA01</p>
+              <p id="df3">Not created</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-icon" id="fi4"><i class="fa fa-truck"></i></div>
+            <div class="flow-info">
+              <h4>Delivery</h4>
+              <p class="t-code">T-Code: VL01N</p>
+              <p id="df4">Not created</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-icon" id="fi5"><i class="fa fa-box"></i></div>
+            <div class="flow-info">
+              <h4>Goods Issue</h4>
+              <p class="t-code">T-Code: VL02N</p>
+              <p id="df5">Pending</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-icon" id="fi6"><i class="fa fa-file-invoice-dollar"></i></div>
+            <div class="flow-info">
+              <h4>Billing Doc</h4>
+              <p class="t-code">T-Code: VF01</p>
+              <p id="df6">Not created</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-icon" id="fi7"><i class="fa fa-check-double"></i></div>
+            <div class="flow-info">
+              <h4>Payment</h4>
+              <p class="t-code">T-Code: F-28</p>
+              <p id="df7">Pending</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-panel">
+      <div class="panel-header"><i class="fa fa-history"></i> ACTIVITY LOG</div>
+      <div class="panel-body" style="max-height:200px; overflow-y:auto;">
+        <div id="activityLog" style="font-size:12px; font-family: var(--mono); line-height: 1.8; color: var(--sap-muted);">
+          <div>[ System Ready ]</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-box" id="toastBox"></div>
+
+<script>
+// ── STATE ──
+const state = {
+  currentStep: 1,
+  completedSteps: new Set(),
+  docs: {
+    inquiry: null,
+    quotation: null,
+    salesOrder: null,
+    delivery: null,
+    goodsIssue: null,
+    billing: null,
+    payment: null
+  },
+  lineItems: [],
+  kpi: { orders: 0, revenue: 0, deliveries: 0, ar: 0 }
+};
+
+const customers = [
+  { id: 'C1001', name: 'Tata Consultancy Services', city: 'Mumbai', credit: 500000 },
+  { id: 'C1002', name: 'Infosys Limited', city: 'Bangalore', credit: 750000 },
+  { id: 'C1003', name: 'Wipro Technologies', city: 'Hyderabad', credit: 300000 },
+  { id: 'C1004', name: 'HCL Technologies', city: 'Noida', credit: 450000 },
+];
+
+const materials = [
+  { id: 'M-1001', name: 'Industrial Pump – Series A', price: 45000, unit: 'EA' },
+  { id: 'M-1002', name: 'Control Panel Board',       price: 28500, unit: 'EA' },
+  { id: 'M-1003', name: 'Electric Motor 5HP',         price: 32000, unit: 'EA' },
+  { id: 'M-1004', name: 'Hydraulic Valve Set',        price: 12800, unit: 'SET' },
+  { id: 'M-1005', name: 'Steel Pipe 4-inch (meter)',  price: 1850,  unit: 'M' },
+];
+
+function genDoc(prefix) {
+  return prefix + Math.floor(1000000000 + Math.random() * 9000000000);
+}
+
+function log(msg) {
+  const div = document.getElementById('activityLog');
+  const now = new Date().toLocaleTimeString();
+  div.innerHTML += `<div>[${now}] ${msg}</div>`;
+  div.scrollTop = div.scrollHeight;
+}
+
+function toast(msg, type = 'success') {
+  const box = document.getElementById('toastBox');
+  const el = document.createElement('div');
+  el.className = `toast-item${type === 'error' ? ' error' : ''}`;
+  el.innerHTML = `<i class="fa fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
+  box.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+function updateKPI() {
+  document.getElementById('kpiOrders').textContent     = state.kpi.orders;
+  document.getElementById('kpiRevenue').textContent    = '₹' + state.kpi.revenue.toLocaleString('en-IN');
+  document.getElementById('kpiDeliveries').textContent = state.kpi.deliveries;
+  document.getElementById('kpiAR').textContent         = '₹' + state.kpi.ar.toLocaleString('en-IN');
+}
+
+function updateProgress(step) {
+  for (let i = 2; i <= 7; i++) {
+    const el = document.getElementById(`sp${i}`);
+    if (!el) continue;
+    el.className = 'step-pill';
+    if (state.completedSteps.has(i)) { el.className = 'step-pill done'; el.innerHTML = `<i class="fa fa-check"></i> ${el.textContent.replace('● ','').trim()}`; }
+    else if (i === step) { el.className = 'step-pill active'; }
+  }
+  for (let i = 2; i <= 7; i++) {
+    const ns = document.getElementById(`ns${i}`);
+    if (!ns) continue;
+    ns.className = 'nav-step';
+    if (state.completedSteps.has(i)) ns.classList.add('done');
+    if (i === step) ns.classList.add('active');
+  }
+}
+
+function updateDocFlow(step, docNum) {
+  const icons = {2:'fi2',3:'fi3',4:'fi4',5:'fi5',6:'fi6',7:'fi7'};
+  const labels = {2:'df2',3:'df3',4:'df4',5:'df5',6:'df6',7:'df7'};
+  if (icons[step]) {
+    document.getElementById(icons[step]).classList.add('done');
+    document.getElementById(labels[step]).textContent = docNum || 'Created ✓';
+    document.getElementById(labels[step]).style.color = 'var(--sap-green)';
+  }
+}
+
+function goStep(n) {
+  if (n > 1 && !state.completedSteps.has(n - 1) && n !== 1) {
+    if (n > state.currentStep + 1) { toast('Please complete previous steps first', 'error'); return; }
+  }
+  state.currentStep = n;
+  updateProgress(n);
+  renderStep(n);
+}
+
+// ── STEPS ──
+function renderStep(n) {
+  const container = document.getElementById('stepContainer');
+  const renders = [null, renderStep1, renderStep2, renderStep3, renderStep4, renderStep5, renderStep6, renderStep7];
+  container.innerHTML = '';
+  renders[n]();
+}
+
+function renderStep1() {
+  document.getElementById('stepContainer').innerHTML = `
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-title">
+        <div class="section-icon"><i class="fa fa-search"></i></div>
+        <div><h2>Step 1 – Sales Inquiry</h2><p>T-CODE: VA11 · DOCUMENT TYPE: IN</p></div>
+      </div>
+      <span class="info-chip"><i class="fa fa-info-circle"></i> Customer RFQ Entry</span>
+    </div>
+    <div class="section-body">
+      <div class="highlight-box mb-4">
+        <p style="font-size:13px; color:var(--sap-dark);">
+          <b>Business Context:</b> A customer contacts KIIT Industries requesting pricing and availability information for industrial equipment. 
+          We create a Sales Inquiry document in SAP to record the customer's requirements before sending a formal quotation.
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Customer Account *</label>
+          <select class="form-select" id="inqCustomer">
+            <option value="">-- Select Customer --</option>
+            ${customers.map(c => `<option value="${c.id}">${c.id} – ${c.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Inquiry Date</label>
+          <input type="date" class="form-control" id="inqDate" value="${new Date().toISOString().split('T')[0]}"/>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Valid To</label>
+          <input type="date" class="form-control" id="inqValid" value="${new Date(Date.now()+30*86400000).toISOString().split('T')[0]}"/>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Sales Organization</label>
+          <select class="form-select"><option>KS10 – KIIT Sales Org</option></select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Distribution Channel</label>
+          <select class="form-select"><option>10 – Wholesale</option></select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Division</label>
+          <select class="form-select"><option>00 – All Products</option></select>
+        </div>
+        <div class="col-12"><label class="form-label">Inquiry Text / Notes</label>
+          <textarea class="form-control" rows="2" placeholder="Customer requirements, special conditions..."></textarea>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <h5 style="font-size:14px; font-weight:700; margin-bottom:14px;">Requested Materials</h5>
+      <div id="inqItems">
+        <div class="line-item-row">
+          <select class="form-select form-select-sm" onchange="updateItemPrice(this)">
+            <option value="">Select Material</option>
+            ${materials.map(m => `<option value="${m.id}" data-price="${m.price}">${m.id} – ${m.name}</option>`).join('')}
+          </select>
+          <input type="number" class="form-control form-control-sm" placeholder="Qty" min="1" value="1"/>
+          <select class="form-select form-select-sm"><option>EA</option><option>M</option><option>SET</option></select>
+          <input type="text" class="form-control form-control-sm" placeholder="Price" readonly/>
+          <button class="remove-btn" onclick="this.closest('.line-item-row').remove()"><i class="fa fa-times"></i></button>
+        </div>
+      </div>
+      <button class="btn-outline-sap mt-2" onclick="addLineItem('inqItems')"><i class="fa fa-plus"></i> Add Line Item</button>
+      <div class="divider"></div>
+      <div class="d-flex gap-3">
+        <button class="btn-sap" onclick="submitInquiry()"><i class="fa fa-save"></i> Save Inquiry (VA11)</button>
+        <button class="btn-outline-sap" onclick="toast('Inquiry checked','success')"><i class="fa fa-eye"></i> Check</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function updateItemPrice(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  const row = sel.closest('.line-item-row');
+  const priceInput = row.querySelectorAll('input')[1];
+  if (opt.dataset.price) priceInput.value = '₹ ' + parseInt(opt.dataset.price).toLocaleString('en-IN');
+}
+
+function addLineItem(containerId) {
+  const div = document.createElement('div');
+  div.className = 'line-item-row';
+  div.innerHTML = `
+    <select class="form-select form-select-sm" onchange="updateItemPrice(this)">
+      <option value="">Select Material</option>
+      ${materials.map(m => `<option value="${m.id}" data-price="${m.price}">${m.id} – ${m.name}</option>`).join('')}
+    </select>
+    <input type="number" class="form-control form-control-sm" placeholder="Qty" min="1" value="1"/>
+    <select class="form-select form-select-sm"><option>EA</option><option>M</option><option>SET</option></select>
+    <input type="text" class="form-control form-control-sm" placeholder="Price" readonly/>
+    <button class="remove-btn" onclick="this.closest('.line-item-row').remove()"><i class="fa fa-times"></i></button>`;
+  document.getElementById(containerId).appendChild(div);
+}
+
+function submitInquiry() {
+  const cust = document.getElementById('inqCustomer').value;
+  if (!cust) { toast('Please select a customer', 'error'); return; }
+  const docNum = genDoc('');
+  state.docs.inquiry = docNum;
+  state.completedSteps.add(1);
+  document.getElementById('df1').textContent = docNum;
+  document.getElementById('df1').style.color = 'var(--sap-green)';
+  log(`Inquiry ${docNum} created for customer ${cust}`);
+  toast(`✓ Sales Inquiry ${docNum} saved successfully`);
+  updateProgress(1);
+  setTimeout(() => goStep(2), 800);
+}
+
+function renderStep2() {
+  document.getElementById('stepContainer').innerHTML = `
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-title">
+        <div class="section-icon" style="background:var(--sap-gold)"><i class="fa fa-file-alt"></i></div>
+        <div><h2>Step 2 – Quotation</h2><p>T-CODE: VA21 · DOCUMENT TYPE: QT</p></div>
+      </div>
+      <span class="info-chip"><i class="fa fa-link"></i> Ref: Inquiry ${state.docs.inquiry || '--'}</span>
+    </div>
+    <div class="section-body">
+      <div class="highlight-box mb-4">
+        <p style="font-size:13px;">
+          <b>Business Context:</b> Based on the Sales Inquiry, we now create a formal Quotation with pricing, 
+          terms, and validity. The customer will accept or reject this quotation to proceed.
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Customer Account</label>
+          <select class="form-select" id="qtCust">
+            ${customers.map(c => `<option value="${c.id}">${c.id} – ${c.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Quotation Date</label>
+          <input type="date" class="form-control" value="${new Date().toISOString().split('T')[0]}"/>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Valid Until</label>
+          <input type="date" class="form-control" value="${new Date(Date.now()+14*86400000).toISOString().split('T')[0]}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Payment Terms</label>
+          <select class="form-select">
+            <option>ZB01 – Net 30 Days</option>
+            <option>ZB02 – Net 60 Days</option>
+            <option>0001 – Due Immediately</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Incoterms</label>
+          <select class="form-select">
+            <option>CIF – Cost Insurance Freight</option>
+            <option>FOB – Free on Board</option>
+            <option>EXW – Ex Works</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Pricing Date</label>
+          <input type="date" class="form-control" value="${new Date().toISOString().split('T')[0]}"/>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <h5 style="font-size:14px; font-weight:700; margin-bottom:14px;">Pricing – Line Items</h5>
+      <table class="data-table">
+        <thead><tr><th>Item</th><th>Material</th><th>Description</th><th>Qty</th><th>Unit Price (₹)</th><th>Discount %</th><th>Net Value (₹)</th></tr></thead>
+        <tbody id="qtBody">
+          ${materials.slice(0,2).map((m,i) => `<tr>
+            <td>${(i+1)*10}</td>
+            <td><span class="doc-num">${m.id}</span></td>
+            <td>${m.name}</td>
+            <td><input type="number" class="form-control form-control-sm" style="width:70px" value="${i===0?2:1}" onchange="calcQtTotal()"/></td>
+            <td>${m.price.toLocaleString('en-IN')}</td>
+            <td><input type="number" class="form-control form-control-sm" style="width:60px" value="0" max="100" onchange="calcQtTotal()"/></td>
+            <td class="qtVal" style="font-family:var(--mono); font-weight:600">${(m.price*(i===0?2:1)).toLocaleString('en-IN')}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="divider"></div>
+      <div class="row">
+        <div class="col-md-4 ms-auto">
+          <div style="background:var(--sap-light); border-radius:10px; padding:14px 18px; font-size:13px; line-height:2.2;">
+            <div style="display:flex;justify-content:space-between;"><span>Subtotal:</span><span id="qtSub" style="font-family:var(--mono)">₹ 1,18,500</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>GST (18%):</span><span id="qtGST" style="font-family:var(--mono)">₹ 21,330</span></div>
+            <div class="divider" style="margin:8px 0;"></div>
+            <div style="display:flex;justify-content:space-between; font-weight:700;"><span>Total:</span><span class="amount-display" id="qtTotal">₹ 1,39,830</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="d-flex gap-3">
+        <button class="btn-sap" onclick="submitQuotation()"><i class="fa fa-save"></i> Create Quotation (VA21)</button>
+        <button class="btn-outline-sap" onclick="goStep(1)"><i class="fa fa-arrow-left"></i> Back</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function calcQtTotal() {
+  let sub = 0;
+  document.querySelectorAll('#qtBody tr').forEach((tr, i) => {
+    const qty = parseFloat(tr.querySelectorAll('input')[0].value) || 0;
+    const disc = parseFloat(tr.querySelectorAll('input')[1].value) || 0;
+    const price = materials[i] ? materials[i].price : 0;
+    const val = price * qty * (1 - disc / 100);
+    sub += val;
+    tr.querySelector('.qtVal').textContent = val.toLocaleString('en-IN');
+  });
+  const gst = sub * 0.18;
+  document.getElementById('qtSub').textContent  = '₹ ' + sub.toLocaleString('en-IN');
+  document.getElementById('qtGST').textContent  = '₹ ' + gst.toLocaleString('en-IN');
+  document.getElementById('qtTotal').textContent = '₹ ' + (sub + gst).toLocaleString('en-IN');
+}
+
+function submitQuotation() {
+  const doc = genDoc('');
+  state.docs.quotation = doc;
+  state.completedSteps.add(2);
+  updateDocFlow(2, doc);
+  log(`Quotation ${doc} created`);
+  toast(`✓ Quotation ${doc} created successfully`);
+  updateProgress(2);
+  setTimeout(() => goStep(3), 800);
+}
+
+function renderStep3() {
+  document.getElementById('stepContainer').innerHTML = `
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-title">
+        <div class="section-icon" style="background:#7C3AED"><i class="fa fa-shopping-cart"></i></div>
+        <div><h2>Step 3 – Sales Order</h2><p>T-CODE: VA01 · DOCUMENT TYPE: OR</p></div>
+      </div>
+      <span class="info-chip"><i class="fa fa-link"></i> Ref: Quotation ${state.docs.quotation || '--'}</span>
+    </div>
+    <div class="section-body">
+      <div class="highlight-box mb-4" style="background:linear-gradient(135deg,#F5F3FF,#EDE9FE); border-color:#C4B5FD;">
+        <p style="font-size:13px;">
+          <b>Business Context:</b> The customer accepted our quotation. We now create the official Sales Order (SO) 
+          in SAP which confirms the sale, triggers availability check (ATP), and initiates credit management.
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-5">
+          <label class="form-label">Sold-To Party *</label>
+          <select class="form-select" id="soCustomer">
+            ${customers.map(c => `<option value="${c.id}">${c.id} – ${c.name} (₹${c.credit.toLocaleString()})</option>`).join('')}
+          </select>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Ship-To Party</label>
+          <select class="form-select">
+            ${customers.map(c => `<option value="${c.id}">${c.id} – ${c.name}, ${c.city}</option>`).join('')}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Order Date</label>
+          <input type="date" class="form-control" value="${new Date().toISOString().split('T')[0]}"/>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Requested Delivery Date</label>
+          <input type="date" class="form-control" id="soDelivDate" value="${new Date(Date.now()+7*86400000).toISOString().split('T')[0]}"/>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Customer PO Number</label>
+          <input type="text" class="form-control" placeholder="e.g. PO-2026-0041" id="soPO"/>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Payment Terms</label>
+          <select class="form-select"><option>ZB01 – Net 30 Days</option><option>ZB02 – Net 60 Days</option></select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Shipping Point</label>
+          <select class="form-select"><option>SP01 – KIIT Warehouse A</option><option>SP02 – KIIT Warehouse B</option></select>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <h5 style="font-size:14px; font-weight:700; margin-bottom:14px;">Order Line Items</h5>
+      <table class="data-table">
+        <thead><tr><th>Item</th><th>Material</th><th>Description</th><th>Qty</th><th>UoM</th><th>Net Price (₹)</th><th>Amount (₹)</th><th>ATP</th></tr></thead>
+        <tbody>
+          ${materials.slice(0,3).map((m,i) => `<tr>
+            <td>${(i+1)*10}</td>
+            <td><span class="doc-num">${m.id}</span></td>
+            <td>${m.name}</td>
+            <td>${i===0?2:1}</td>
+            <td>${m.unit}</td>
+            <td>${m.price.toLocaleString('en-IN')}</td>
+            <td style="font-weight:700; font-family:var(--mono)">${(m.price*(i===0?2:1)).toLocaleString('en-IN')}</td>
+            <td><span class="status status-done"><i class="fa fa-check"></i> OK</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="divider"></div>
+      <div class="row">
+        <div class="col-md-4 ms-auto">
+          <div style="background:var(--sap-light); border-radius:10px; padding:14px 18px; font-size:13px; line-height:2.4;">
+            <div style="display:flex;justify-content:space-between;"><span>Net Value:</span><span style="font-family:var(--mono)">₹ 1,54,000</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Tax (GST 18%):</span><span style="font-family:var(--mono)">₹ 27,720</span></div>
+            <div class="divider" style="margin:8px 0;"></div>
+            <div style="display:flex;justify-content:space-between; font-weight:700;font-size:15px;"><span>Total Value:</span><span class="amount-display">₹ 1,81,720</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="d-flex gap-3">
+        <button class="btn-sap" onclick="submitSalesOrder()"><i class="fa fa-save"></i> Save Sales Order (VA01)</button>
+        <button class="btn-outline-sap" onclick="goStep(2)"><i class="fa fa-arrow-left"></i> Back</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function submitSalesOrder() {
+  const doc = genDoc('');
+  state.docs.salesOrder = doc;
+  state.kpi.orders++;
+  state.kpi.ar = 181720;
+  state.completedSteps.add(3);
+  updateDocFlow(3, doc);
+  updateKPI();
+  log(`Sales Order ${doc} created`);
+  toast(`✓ Sales Order ${doc} confirmed`);
+  updateProgress(3);
+  setTimeout(() => goStep(4), 800);
+}
+
+function renderStep4() {
+  document.getElementById('stepContainer').innerHTML = `
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-title">
+        <div class="section-icon" style="background:#D97706"><i class="fa fa-truck"></i></div>
+        <div><h2>Step 4 – Outbound Delivery</h2><p>T-CODE: VL01N · DOCUMENT TYPE: LF</p></div>
+      </div>
+      <span class="info-chip"><i class="fa fa-link"></i> SO: ${state.docs.salesOrder || '--'}</span>
+    </div>
+    <div class="section-body">
+      <div class="highlight-box mb-4" style="background:linear-gradient(135deg,#FFFBEB,#FEF3C7); border-color:#FCD34D;">
+        <p style="font-size:13px;">
+          <b>Business Context:</b> With the Sales Order confirmed, we create an Outbound Delivery document (VL01N). 
+          This triggers warehouse processing to pick and pack the goods for shipment.
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Shipping Point</label>
+          <select class="form-select"><option>SP01 – KIIT Warehouse A</option></select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Planned GI Date</label>
+          <input type="date" class="form-control" id="giDate" value="${new Date(Date.now()+2*86400000).toISOString().split('T')[0]}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Sales Order Reference</label>
+          <input type="text" class="form-control" value="${state.docs.salesOrder || ''}" readonly/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Delivery Type</label>
+          <select class="form-select"><option>LF – Outbound Delivery</option></select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Route</label>
+          <select class="form-select">
+            <option>R001 – Mumbai Express</option>
+            <option>R002 – Bangalore Direct</option>
+            <option>R003 – North India Route</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Carrier / Forwarding Agent</label>
+          <select class="form-select">
+            <option>DTDC Logistics</option>
+            <option>Blue Dart Express</option>
+            <option>DHL Supply Chain</option>
+          </select>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <h5 style="font-size:14px;font-weight:700;margin-bottom:14px;">Delivery Items</h5>
+      <table class="data-table">
+        <thead><tr><th>Item</th><th>Material</th><th>Description</th><th>Delv Qty</th><th>UoM</th><th>Pick Qty</th><th>Batch</th><th>Status</th></tr></thead>
+        <tbody>
+          ${materials.slice(0,3).map((m,i) => `<tr>
+            <td>${(i+1)*10}</td>
+            <td><span class="doc-num">${m.id}</span></td>
+            <td>${m.name}</td>
+            <td>${i===0?2:1}</td>
+            <td>${m.unit}</td>
+            <td><input type="number" class="form-control form-control-sm" style="width:65px" value="${i===0?2:1}"/></td>
+            <td><input type="text" class="form-control form-control-sm" style="width:90px" value="B00${i+1}"/></td>
+            <td><span class="status status-pending">Picking</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="divider"></div>
+      <div class="d-flex gap-3">
+        <button class="btn-sap" onclick="submitDelivery()"><i class="fa fa-truck"></i> Create Delivery (VL01N)</button>
+        <button class="btn-outline-sap" onclick="goStep(3)"><i class="fa fa-arrow-left"></i> Back</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function submitDelivery() {
+  const doc = genDoc('');
+  state.docs.delivery = doc;
+  state.kpi.deliveries++;
+  state.completedSteps.add(4);
+  updateDocFlow(4, doc);
+  updateKPI();
+  log(`Delivery ${doc} created`);
+  toast(`✓ Delivery ${doc} created successfully`);
+  updateProgress(4);
+  setTimeout(() => goStep(5), 800);
+}
+
+function renderStep5() {
+  document.getElementById('stepContainer').innerHTML = `
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-title">
+        <div class="section-icon" style="background:#059669"><i class="fa fa-box"></i></div>
+        <div><h2>Step 5 – Post Goods Issue (PGI)</h2><p>T-CODE: VL02N · MOVEMENT TYPE: 601</p></div>
+      </div>
+      <span class="info-chip"><i class="fa fa-link"></i> Delivery: ${state.docs.delivery || '--'}</span>
+    </div>
+    <div class="section-body">
+      <div class="highlight-box mb-4" style="background:linear-gradient(135deg,#ECFDF5,#D1FAE5); border-color:#6EE7B7;">
+        <p style="font-size:13px;">
+          <b>Business Context:</b> After picking and packing, we execute Post Goods Issue (PGI). This reduces 
+          inventory in the plant, creates an accounting document (Dr. COGS / Cr. Inventory), and triggers revenue recognition.
+        </p>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Delivery Document</label>
+          <input class="form-control" value="${state.docs.delivery || ''}" readonly/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Goods Issue Date</label>
+          <input type="date" class="form-control" value="${new Date().toISOString().split('T')[0]}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Movement Type</label>
+          <input class="form-control" value="601 – GD goods issue: deliv." readonly style="font-family:var(--mono);"/>
+        </div>
+      </div>
+      <table class="data-table mb-4">
+        <thead><tr><th>Item</th><th>Material</th><th>Description</th><th>Qty</th><th>UoM</th><th>Plant</th><th>SLoc</th><th>Batch</th></tr></thead>
+        <tbody>
+          ${materials.slice(0,3).map((m,i) => `<tr>
+            <td>${(i+1)*10}</td>
+            <td><span class="doc-num">${m.id}</span></td>
+            <td>${m.name}</td>
+            <td>${i===0?2:1}</td>
+            <td>${m.unit}</td>
+            <td>KP01</td>
+            <td>0001</td>
+            <td>B00${i+1}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="highlight-box mb-4" style="background:linear-gradient(135deg,#FFF7ED,#FFEDD5); border-color:#FED7AA;">
+        <h5 style="font-size:13px; font-weight:700; margin-bottom:8px;"><i class="fa fa-book"></i> FI Accounting Entry (Auto-Generated)</h5>
+        <table style="font-size:12px; font-family:var(--mono); width:100%;">
+          <tr><td style="padding:3px 8px; color:var(--sap-red);">Dr. Cost of Goods Sold</td><td style="padding:3px 8px;">₹ 1,10,000</td></tr>
+          <tr><td style="padding:3px 8px; color:var(--sap-green);">Cr. Finished Goods Inventory</td><td style="padding:3px 8px;">₹ 1,10,000</td></tr>
+        </table>
+      </div>
+      <div class="d-flex gap-3">
+        <button class="btn-success-sap" onclick="submitGI()"><i class="fa fa-check"></i> Post Goods Issue (PGI)</button>
+        <button class="btn-outline-sap" onclick="goStep(4)"><i class="fa fa-arrow-left"></i> Back</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function submitGI() {
+  const doc = genDoc('MAT');
+  state.docs.goodsIssue = doc;
+  state.completedSteps.add(5);
+  updateDocFlow(5, 'PGI Posted ✓');
+  log(`Goods Issue posted. Mat Doc: ${doc}, Movement: 601`);
+  toast(`✓ Goods Issue posted. Material Doc: ${doc}`);
+  updateProgress(5);
+  setTimeout(() => goStep(6), 800);
+}
+
+function renderStep6() {
+  document.getElementById('stepContainer').innerHTML = `
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-title">
+        <div class="section-icon" style="background:#DC2626"><i class="fa fa-file-invoice-dollar"></i></div>
+        <div><h2>Step 6 – Billing Document / Invoice</h2><p>T-CODE: VF01 · DOCUMENT TYPE: F2</p></div>
+      </div>
+      <span class="info-chip">Auto-Post to FI-AR</span>
+    </div>
+    <div class="section-body">
+      <div class="highlight-box mb-4" style="background:linear-gradient(135deg,#FFF1F2,#FFE4E6); border-color:#FECACA;">
+        <p style="font-size:13px;">
+          <b>Business Context:</b> After PGI, we create the Billing Document (Invoice) in VF01. 
+          This automatically posts to Financial Accounting — creating an AR (Accounts Receivable) open item.
+        </p>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Billing Type</label>
+          <select class="form-select"><option>F2 – Invoice</option><option>G2 – Credit Memo</option></select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Billing Date</label>
+          <input type="date" class="form-control" value="${new Date().toISOString().split('T')[0]}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Payer Account</label>
+          <select class="form-select">
+            ${customers.map(c => `<option>${c.id} – ${c.name}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <table class="data-table mb-4">
+        <thead><tr><th>Pos</th><th>Material</th><th>Description</th><th>Qty</th><th>Unit Price (₹)</th><th>GST (18%)</th><th>Total (₹)</th></tr></thead>
+        <tbody>
+          ${materials.slice(0,3).map((m,i) => {
+            const qty = i===0?2:1;
+            const net = m.price*qty;
+            const tax = net*0.18;
+            return `<tr>
+              <td>${(i+1)*10}</td>
+              <td><span class="doc-num">${m.id}</span></td>
+              <td>${m.name}</td>
+              <td>${qty}</td>
+              <td>${m.price.toLocaleString('en-IN')}</td>
+              <td>${Math.round(tax).toLocaleString('en-IN')}</td>
+              <td style="font-weight:700; font-family:var(--mono)">${Math.round(net+tax).toLocaleString('en-IN')}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+      <div class="row mb-4">
+        <div class="col-md-5 ms-auto">
+          <div style="background:var(--sap-light);border-radius:10px;padding:16px 20px;font-size:13px;line-height:2.4;">
+            <div style="display:flex;justify-content:space-between;"><span>Net Amount:</span><span style="font-family:var(--mono)">₹ 1,54,000</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>CGST (9%):</span><span style="font-family:var(--mono)">₹ 13,860</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>SGST (9%):</span><span style="font-family:var(--mono)">₹ 13,860</span></div>
+            <div class="divider" style="margin:8px 0;"></div>
+            <div style="display:flex;justify-content:space-between;font-weight:700;font-size:16px;"><span>Invoice Total:</span><span class="amount-display">₹ 1,81,720</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="highlight-box mb-4" style="background:linear-gradient(135deg,#FFF7ED,#FFEDD5); border-color:#FED7AA;">
+        <h5 style="font-size:13px; font-weight:700; margin-bottom:8px;"><i class="fa fa-book"></i> FI Accounting Entry (Auto-Posted)</h5>
+        <table style="font-size:12px; font-family:var(--mono); width:100%;">
+          <tr><td style="padding:3px 8px; color:var(--sap-red);">Dr. Accounts Receivable (Customer)</td><td style="padding:3px 8px;">₹ 1,81,720</td></tr>
+          <tr><td style="padding:3px 8px; color:var(--sap-green);">Cr. Revenue – Sales</td><td style="padding:3px 8px;">₹ 1,54,000</td></tr>
+          <tr><td style="padding:3px 8px; color:var(--sap-green);">Cr. GST Payable</td><td style="padding:3px 8px;">₹ 27,720</td></tr>
+        </table>
+      </div>
+      <div class="d-flex gap-3">
+        <button class="btn-sap" style="background:var(--sap-red)" onclick="submitBilling()"><i class="fa fa-file-invoice-dollar"></i> Create Billing Doc (VF01)</button>
+        <button class="btn-outline-sap" onclick="goStep(5)"><i class="fa fa-arrow-left"></i> Back</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function submitBilling() {
+  const doc = genDoc('');
+  state.docs.billing = doc;
+  state.kpi.revenue = 181720;
+  state.completedSteps.add(6);
+  updateDocFlow(6, doc);
+  updateKPI();
+  log(`Billing Doc ${doc} posted. AR Open Item: ₹1,81,720`);
+  toast(`✓ Invoice ${doc} posted to FI-AR`);
+  updateProgress(6);
+  setTimeout(() => goStep(7), 800);
+}
+
+function renderStep7() {
+  document.getElementById('stepContainer').innerHTML = `
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-title">
+        <div class="section-icon" style="background:var(--sap-green)"><i class="fa fa-check-double"></i></div>
+        <div><h2>Step 7 – Payment Receipt & AR Clearing</h2><p>T-CODE: F-28 · AR CLEARING</p></div>
+      </div>
+      <span class="info-chip"><i class="fa fa-star" style="color:var(--sap-gold)"></i> Final Step</span>
+    </div>
+    <div class="section-body">
+      <div class="highlight-box mb-4" style="background:linear-gradient(135deg,#ECFDF5,#D1FAE5); border-color:#6EE7B7;">
+        <p style="font-size:13px;">
+          <b>Business Context:</b> The customer makes payment. We record incoming payment using F-28 in SAP FI, 
+          which clears the open AR item — completing the Order-to-Cash cycle.
+        </p>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-md-3">
+          <label class="form-label">Document Date</label>
+          <input type="date" class="form-control" value="${new Date().toISOString().split('T')[0]}"/>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Posting Date</label>
+          <input type="date" class="form-control" value="${new Date().toISOString().split('T')[0]}"/>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Bank Account (G/L)</label>
+          <select class="form-select"><option>110001 – SBI Main Bank</option><option>110002 – HDFC Current</option></select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Amount Received (₹)</label>
+          <input type="number" class="form-control" id="payAmt" value="181720"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Payment Method</label>
+          <select class="form-select">
+            <option>T – Bank Transfer (NEFT/RTGS)</option>
+            <option>C – Cheque</option>
+            <option>B – Online Banking</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Customer Account</label>
+          <select class="form-select">${customers.map(c=>`<option>${c.id} – ${c.name}</option>`).join('')}</select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Reference (Bank Ref No.)</label>
+          <input type="text" class="form-control" placeholder="NEFT/RTGS Ref." value="NEFT${Math.floor(Math.random()*900000+100000)}"/>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <h5 style="font-size:14px;font-weight:700;margin-bottom:14px;">Open AR Items to Clear</h5>
+      <table class="data-table mb-4">
+        <thead><tr><th>Doc No.</th><th>Type</th><th>Doc Date</th><th>Net Due</th><th>Amount (₹)</th><th>Select</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="doc-num">${state.docs.billing || '9100001234'}</span></td>
+            <td>RV – Invoice</td>
+            <td>${new Date().toLocaleDateString('en-IN')}</td>
+            <td>${new Date(Date.now()+30*86400000).toLocaleDateString('en-IN')}</td>
+            <td style="font-weight:700; font-family:var(--mono); color:var(--sap-red)">1,81,720</td>
+            <td><input type="checkbox" checked style="width:18px;height:18px;"/></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="highlight-box mb-4" style="background:linear-gradient(135deg,#FFF7ED,#FFEDD5); border-color:#FED7AA;">
+        <h5 style="font-size:13px;font-weight:700;margin-bottom:8px;"><i class="fa fa-book"></i> FI Accounting Entry (Payment Posting)</h5>
+        <table style="font-size:12px; font-family:var(--mono); width:100%;">
+          <tr><td style="padding:3px 8px; color:var(--sap-red);">Dr. Bank Account</td><td style="padding:3px 8px;">₹ 1,81,720</td></tr>
+          <tr><td style="padding:3px 8px; color:var(--sap-green);">Cr. Accounts Receivable</td><td style="padding:3px 8px;">₹ 1,81,720</td></tr>
+        </table>
+      </div>
+      <div class="d-flex gap-3">
+        <button class="btn-success-sap" onclick="submitPayment()"><i class="fa fa-check-double"></i> Post Payment & Clear AR (F-28)</button>
+        <button class="btn-outline-sap" onclick="goStep(6)"><i class="fa fa-arrow-left"></i> Back</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function submitPayment() {
+  const doc = genDoc('');
+  state.docs.payment = doc;
+  state.kpi.ar = 0;
+  state.completedSteps.add(7);
+  updateDocFlow(7, doc);
+  updateKPI();
+  log(`Payment ${doc} posted. AR cleared. O2C Cycle COMPLETE!`);
+  toast(`🎉 O2C Cycle Complete! Payment Posted: ${doc}`);
+  updateProgress(7);
+
+  setTimeout(() => {
+    document.getElementById('stepContainer').innerHTML = `
+    <div class="section-card" style="border:2px solid var(--sap-green);">
+      <div class="section-body" style="text-align:center; padding:48px 24px;">
+        <div style="width:80px;height:80px;border-radius:50%;background:var(--sap-green);color:#fff;font-size:36px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+          <i class="fa fa-trophy"></i>
+        </div>
+        <h2 style="font-size:28px;font-weight:700;color:var(--sap-green);margin-bottom:8px;">Order-to-Cash Cycle Complete!</h2>
+        <p style="color:var(--sap-muted);font-size:14px;margin-bottom:28px;">All 7 steps of the O2C process have been successfully executed.</p>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:700px;margin:0 auto 28px;">
+          ${[
+            ['Sales Inquiry', state.docs.inquiry],
+            ['Quotation', state.docs.quotation],
+            ['Sales Order', state.docs.salesOrder],
+            ['Delivery', state.docs.delivery],
+            ['Goods Issue', state.docs.goodsIssue],
+            ['Billing Doc', state.docs.billing],
+            ['Payment Doc', doc],
+            ['Total Revenue', '₹ 1,81,720']
+          ].map(([label, val]) => `<div style="background:var(--sap-light);border-radius:10px;padding:12px;border:1px solid var(--sap-border);">
+            <div style="font-size:10px;font-family:var(--mono);color:var(--sap-muted);text-transform:uppercase;">${label}</div>
+            <div style="font-size:12px;font-family:var(--mono);font-weight:700;color:var(--sap-dark);margin-top:4px;word-break:break-all;">${val}</div>
+          </div>`).join('')}
+        </div>
+        <button class="btn-sap" onclick="resetAll()"><i class="fa fa-redo"></i> Start New O2C Cycle</button>
+      </div>
+    </div>`;
+  }, 1000);
+}
+
+function resetAll() {
+  Object.keys(state.docs).forEach(k => state.docs[k] = null);
+  state.completedSteps.clear();
+  state.currentStep = 1;
+  state.kpi = { orders:0, revenue:0, deliveries:0, ar:0 };
+  updateKPI();
+  updateProgress(1);
+  renderStep(1);
+  log('New O2C cycle started');
+  toast('New cycle started');
+}
+
+// ── INIT ──
+document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
+state.completedSteps.add(1);
+updateProgress(1);
+renderStep(1);
+updateKPI();
+</script>
+</body>
+</html>
